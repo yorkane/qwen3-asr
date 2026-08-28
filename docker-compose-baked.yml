@@ -1,0 +1,38 @@
+# Model-localized (offline) deployment of the async vLLM build.
+# Image w217/qwen3-asr:async-baked bakes Qwen3-ASR 1.7B + ForcedAligner +
+# FunASR stack (VAD/CAM++/Paraformer/PUNC) inside the image; no model
+# volume mounts and no network access are needed at runtime.
+#
+# Build: docker build -f Dockerfile.gpu.baked -t w217/qwen3-asr:async-baked .
+name: qwen3-asr-baked
+
+services:
+  qwen3-asr:
+    image: w217/qwen3-asr:async-baked
+    container_name: qwen3-asr-gpu3
+    ports:
+      - "${NGINX_PORT:-17003}:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${CUDA_DEVICE:-3}"]
+              capabilities: [gpu]
+    shm_size: "8gb"
+    restart: unless-stopped
+    environment:
+      ENABLED_MODELS: auto
+      API_KEY: ${API_KEY:-devideo2026asrkey}
+      HF_HUB_OFFLINE: "1"
+      QWEN3_ASR_MODEL: ${QWEN3_ASR_MODEL:-qwen3-asr-1.7b}
+      # --- vLLM async engine tuning (tuned for 1x L40) ---
+      QWEN_GPU_MEMORY_UTILIZATION: "0.7"
+      QWEN_FORCE_ALIGNER_GPU_MEMORY_UTILIZATION: "0.15"
+      QWEN_VLLM_MAX_NUM_BATCHED_TOKENS: "16384"
+      QWEN_VLLM_MAX_NUM_SEQS: "128"
+      QWEN_VLLM_RENDERER_WORKERS: "8"
+      QWEN_VLLM_MAX_IN_FLIGHT: "64"
+      QWEN_VLLM_SHARED_CONCURRENCY: "64"
+      QWEN_VAD_POOL: "4"
+      ASR_BATCH_SIZE: "32"
