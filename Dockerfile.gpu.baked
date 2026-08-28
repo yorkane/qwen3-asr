@@ -1,0 +1,16 @@
+# Bake variant of Dockerfile.gpu: models are copied into the image so the
+# container runs fully offline (no model download / volume mount needed).
+# The updated application code (async vLLM engine) is copied in as well.
+FROM quantatrisk/qwen3-asr:gpu-latest
+
+ENV HF_HUB_OFFLINE=1
+
+# Updated application code (AsyncLLMEngine refactor + tuning knobs)
+COPY app/ /app/app/
+
+# Qwen3-ASR (HuggingFace cache layout)
+COPY models-baked/huggingface/hub/ /root/.cache/huggingface/hub/
+# FunASR stack: VAD / CAM++ / Paraformer / PUNC (ModelScope cache layout)
+COPY models-baked/modelscope/hub/models/ /root/.cache/modelscope/hub/models/
+
+RUN echo "models baked at build time; runtime downloads disabled"

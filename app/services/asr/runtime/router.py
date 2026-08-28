@@ -18,7 +18,28 @@ from app.services.asr.manager import get_model_manager
 from app.services.asr.qwenasr_rust import is_qwenasr_rust_available
 from .local_pool import LocalEnginePool
 
-_VLLM_SHARED_CONCURRENCY = 8
+
+def _resolve_shared_concurrency() -> int:
+    """App-level cap on concurrent ASR requests sharing one vLLM engine.
+
+    The engine itself batches via continuous batching, so this only limits
+    how many in-flight requests the application tracks. Override with
+    QWEN_VLLM_SHARED_CONCURRENCY.
+    """
+    import os
+
+    override = (os.getenv("QWEN_VLLM_SHARED_CONCURRENCY") or "").strip()
+    if override:
+        try:
+            value = int(override)
+            if value > 0:
+                return value
+        except ValueError:
+            pass
+    return 64
+
+
+_VLLM_SHARED_CONCURRENCY = _resolve_shared_concurrency()
 
 
 class RuntimeFamily(str, Enum):
@@ -78,7 +99,6 @@ class RuntimeRouter:
         )
         self._shared_engines: dict[tuple[RuntimeFamily, str], BaseASREngine] = {}
         self._shared_limits: dict[tuple[RuntimeFamily, str], asyncio.Semaphore] = {}
-        self._vllm_offline_locks: dict[str, asyncio.Lock] = {}
         self._pool_lock = threading.Lock()
         self._loaded_model_ids: set[str] = set()
 
@@ -194,10 +214,6 @@ class RuntimeRouter:
 
     async def run_offline(self, request: OfflineASRRequest) -> ASRFullResult:
         model_id = self.resolve_model_id(request.model_id)
-        if self._resolve_family(model_id) == RuntimeFamily.QWEN_VLLM:
-            lock = self._vllm_offline_locks.setdefault(model_id, asyncio.Lock())
-            async with lock:
-                return await self._run_offline(request, model_id)
         return await self._run_offline(request, model_id)
 
     async def _run_offline(

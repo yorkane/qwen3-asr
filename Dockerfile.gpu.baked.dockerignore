@@ -1,0 +1,24 @@
+# Ignore rules for the model-baked build: keep models-baked in context,
+# drop everything else that is heavy or irrelevant.
+.git
+models/
+demo/
+demo2/
+docs/
+tests/
+logs/
+temp/
+environments/
+vendor/
+*.log
+__pycache__
+*.pyc
+*.pyo
+.env
+.env.*
+.vscode
+.idea
+.pytest_cache
+node_modules
+README.md
+*.md

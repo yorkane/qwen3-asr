@@ -20,6 +20,72 @@ _global_vad_model = None
 _vad_model_lock = threading.Lock()
 _vad_inference_lock = threading.Lock()  # 推理互斥锁，防止并发状态混乱
 
+# VAD 推理实例池：FunASR 单个 VAD 实例并非线程安全，池内每个实例有独立锁，
+# 不同实例之间可真正并行。通过 QWEN_VAD_POOL 控制池大小（默认 4）。
+_vad_pool_entries: list = []
+_vad_pool_guard = threading.Lock()
+
+
+def _resolve_vad_pool_size() -> int:
+    import os
+
+    raw = (os.getenv("QWEN_VAD_POOL") or "").strip()
+    if raw:
+        try:
+            value = int(raw)
+            if value > 0:
+                return min(value, 32)
+        except ValueError:
+            logger.warning("Invalid QWEN_VAD_POOL=%s, using default pool size", raw)
+    return 4
+
+
+def _create_vad_model(device: str):
+    import os
+
+    vad_device_override = (os.getenv("QWEN_VAD_DEVICE") or "").strip()
+    if vad_device_override:
+        device = vad_device_override
+    resolved_vad_path = resolve_model_path(settings.VAD_MODEL)
+    resolved_device = _resolve_device(device)
+    return AutoModel(
+        model=resolved_vad_path,
+        device=resolved_device,
+        speech_noise_thres=0.6,
+        **settings.FUNASR_AUTOMODEL_KWARGS,
+    )
+
+
+def acquire_vad_instance(device: str):
+    """Acquire a (model, lock) entry from the VAD pool.
+
+    Returns the entry with its lock already held; callers must call
+    release_vad_instance() after inference.
+    """
+    size = _resolve_vad_pool_size()
+    with _vad_pool_guard:
+        while len(_vad_pool_entries) < size:
+            logger.info(
+                "Creating VAD pool instance %s/%s", len(_vad_pool_entries) + 1, size
+            )
+            try:
+                model = _create_vad_model(device)
+            except Exception as exc:  # noqa: BLE001
+                logger.error("Failed to create VAD pool instance: %s", exc)
+                model = None
+            _vad_pool_entries.append((model, threading.Lock()))
+        entries = list(_vad_pool_entries)
+
+    for entry in entries:
+        if entry[1].acquire(blocking=False):
+            return entry
+    entries[0][1].acquire()
+    return entries[0]
+
+
+def release_vad_instance(entry) -> None:
+    entry[1].release()
+
 # 全局标点符号模型缓存（避免重复加载）
 _global_punc_model = None
 _punc_model_lock = threading.Lock()
@@ -41,6 +107,12 @@ def _resolve_device(device: str) -> str:
 def get_global_vad_model(device: str):
     """获取全局语音活动检测(VAD)模型实例（线程安全，双重检查锁定）"""
     global _global_vad_model
+
+    import os
+
+    vad_device_override = (os.getenv("QWEN_VAD_DEVICE") or "").strip()
+    if vad_device_override:
+        device = vad_device_override
 
     if _global_vad_model is None:
         with _vad_model_lock:

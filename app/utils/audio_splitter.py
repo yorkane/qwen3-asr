@@ -91,15 +91,24 @@ class AudioSplitter:
             语音段列表，每个元素为 (start_ms, end_ms)
         """
         try:
-            from ..services.asr.engines import get_global_vad_model
+            from ..services.asr.engines.global_models import (
+                acquire_vad_instance,
+                release_vad_instance,
+            )
 
             logger.info("开始 VAD 语音段检测...")
-            vad_model = get_global_vad_model(self.device)
-            if vad_model is None:
-                raise DefaultServerErrorException("VAD 模型未加载")
+            # 从 VAD 实例池取一个实例（实例内互斥、实例间并行，避免
+            # FunASR 单实例并发推理导致的状态错乱）
+            entry = acquire_vad_instance(self.device)
+            try:
+                vad_model = entry[0]
+                if vad_model is None:
+                    raise DefaultServerErrorException("VAD 模型未加载")
 
-            # 调用 VAD 模型
-            result = vad_model.generate(input=audio_path, cache={})
+                # 调用 VAD 模型
+                result = vad_model.generate(input=audio_path, cache={})
+            finally:
+                release_vad_instance(entry)
 
             if not result or len(result) == 0:
                 logger.warning("VAD 未检测到语音段")

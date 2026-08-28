@@ -327,6 +327,8 @@ class Qwen3ASREngine(BaseASREngine):
         return output
 
     def _warmup_forced_aligner(self) -> None:
+        if self._backend == "vllm":
+            self.model.ensure_engine_started()
         if not self._forced_aligner_path:
             return
         if self._backend == "vllm":
@@ -484,11 +486,20 @@ class Qwen3ASREngine(BaseASREngine):
             return output
 
         if self._backend == "vllm":
+            preloaded: list[np.ndarray] = []
+            all_preloaded = True
+            for _idx, seg in valid:
+                data = getattr(seg, "audio_data", None)
+                if data is None:
+                    all_preloaded = False
+                    break
+                preloaded.append(data)
             vllm_results = self.model.transcribe_batch(
                 [seg.temp_file for _, seg in valid],
                 context=hotwords or "",
                 word_timestamps=word_timestamps,
                 enable_itn=enable_itn,
+                audios=preloaded if all_preloaded else None,
             )
             for (idx, seg), result in zip(valid, vllm_results):
                 output[idx] = ASRSegmentResult(
