@@ -314,6 +314,12 @@ class Qwen3VLLMBackend:
                     max_num_seqs = _resolve_optional_int_env("QWEN_VLLM_MAX_NUM_SEQS")
                     if max_num_seqs:
                         engine_kwargs["max_num_seqs"] = max_num_seqs
+                    quantization = (os.getenv("QWEN_VLLM_QUANTIZATION") or "").strip()
+                    if quantization:
+                        engine_kwargs["quantization"] = quantization
+                    kv_cache_dtype = (os.getenv("QWEN_VLLM_KV_CACHE_DTYPE") or "").strip()
+                    if kv_cache_dtype:
+                        engine_kwargs["kv_cache_dtype"] = kv_cache_dtype
                     limit_mm = _resolve_optional_int_env("QWEN_VLLM_LIMIT_MM_PER_PROMPT")
                     if limit_mm:
                         engine_kwargs["limit_mm_per_prompt"] = {"audio": limit_mm}
@@ -561,6 +567,9 @@ class Qwen3VLLMBackend:
             }
             if self._max_model_len is not None:
                 kwargs["max_model_len"] = self._max_model_len
+            quantization = (os.getenv("QWEN_VLLM_QUANTIZATION") or "").strip()
+            if quantization:
+                kwargs["quantization"] = quantization
             self._sync_llm = getattr(self._vllm_module, "LLM")(**kwargs)
         return self._sync_llm
 

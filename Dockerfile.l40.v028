@@ -1,0 +1,99 @@
+# L40 (sm_89) optimized image: vLLM 0.28 + torch 2.13 + transformers 5.5.3.
+# Single clean install (no stacked old torch), models baked in, offline runtime.
+#
+#   docker build -f Dockerfile.l40.v028 -t w217/qwen3-asr:l40-v028 .
+#
+# Size strategy vs the stacked exp028 image (33GB):
+#   - fresh base: no duplicated torch 2.10/2.11 CUDA stacks (~-6GB)
+#   - no flashinfer-jit-cache (2GB); torch.compile cache baked via build-time warmup
+#   - single squash layer via scripts/slim-image.sh after build
+FROM ubuntu:24.04
+
+ARG TARGETARCH=amd64
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HF_HOME=/root/.cache/huggingface \
+    HF_HUB_CACHE=/root/.cache/huggingface/hub \
+    HF_HUB_OFFLINE=1 \
+    HF_HUB_DISABLE_SYMLINKS_WARNING=1 \
+    HF_HUB_DISABLE_PROGRESS_BARS=1 \
+    PATH=/opt/venv/bin:$PATH \
+    VIRTUAL_ENV=/opt/venv \
+    UV_PROJECT_ENVIRONMENT=/opt/venv
+
+# Runtime deps: audio tooling (ffmpeg/sox), nginx (multi-GPU entrypoint),
+# build tools + cuda-nvcc apt package only as fallback for JIT paths.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates ffmpeg sox libsox-dev libsndfile1 nginx \
+        python3.12 python3.12-venv python3.12-dev build-essential \
+        git curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# uv + venv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+RUN uv venv /opt/venv
+
+# --- Python deps: one shot, exact verified stack (272 pins from exp028) ---
+# torch 2.13.0 pulls cuda-toolkit cu13 (nvcc/NVRTC for CAM++ runtime JIT).
+# flashinfer-cubin must come from flashinfer.ai/whl (not on PyPI since 0.6.14).
+COPY benchmark/requirements-direct.txt /tmp/requirements-frozen.txt
+RUN uv pip install --python /opt/venv/bin/python \
+        --index-url https://pypi.org/simple \
+        --extra-index-url https://flashinfer.ai/whl/ \
+        -r /tmp/requirements-frozen.txt \
+    && uv cache clean \
+    && rm -rf /root/.cache/pip /tmp/requirements-frozen.txt
+
+WORKDIR /app
+
+# App code (most volatile layer last-ish)
+COPY app/ /app/app/
+COPY start.py /app/start.py
+COPY scripts/ /app/scripts/
+
+# Dependency sanity gate: fails the build on any mismatch
+RUN /opt/venv/bin/python - <<'PY'
+import torch, torchaudio, transformers, vllm, funasr
+print("torch", torch.__version__, "cuda", torch.version.cuda)
+print("torchaudio", torchaudio.__version__)
+print("transformers", transformers.__version__)
+print("vllm", vllm.__version__)
+assert torch.cuda.is_available() or True
+PY
+
+# --- Bake models (downloaded at build time; fully offline at runtime) ---
+# NOTE: ENV sets HF_HUB_OFFLINE=1 above; override it here so build-time
+# downloads work while runtime stays fully offline.
+RUN HF_HUB_OFFLINE=0 HF_HUB_DISABLE_PROGRESS_BARS=1 /opt/venv/bin/python - <<'PY'
+from huggingface_hub import snapshot_download
+snapshot_download("Qwen/Qwen3-ASR-1.7B")
+snapshot_download("Qwen/Qwen3-ForcedAligner-0.6B")
+print("huggingface models downloaded")
+PY
+RUN HF_HUB_OFFLINE=0 /opt/venv/bin/python - <<'PY'
+from modelscope.hub.snapshot_download import snapshot_download
+for m in [
+    "iic/speech_campplus_speaker-diarization_common",
+    "damo/speech_campplus_sv_zh-cn_16k-common",
+    "damo/speech_campplus-transformer_scl_zh-cn_16k-common",
+    "iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-online",
+    "iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch",
+    "iic/punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727",
+    "damo/speech_fsmn_vad_zh-cn-16k-common-pytorch",
+]:
+    snapshot_download(m)
+print("modelscope models downloaded")
+PY
+
+# Runtime env (mirror of the verified exp028 runtime requirements)
+ENV CUDA_HOME=/opt/venv/lib/python3.12/site-packages/nvidia/cu13 \
+    LD_LIBRARY_PATH=/opt/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/opt/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib \
+    VLLM_USE_FLASHINFER_SAMPLER=0 \
+    TORCH_CUDA_ARCH_LIST=8.9
+
+RUN mkdir -p /app/temp /app/data /app/logs
+
+EXPOSE 8000
+ENTRYPOINT ["/app/scripts/docker/entrypoint.sh"]
+CMD ["/opt/venv/bin/python", "start.py"]

@@ -1,0 +1,55 @@
+# Bake variant: fully-offline image with models baked in, upgraded to
+# vLLM 0.28.0 + torch 2.13 + transformers 5.5.3 for higher throughput.
+#
+# Build: docker build -f Dockerfile.gpu.baked.v028 -t w217/qwen3-asr:async-v028 .
+# then squash with scripts/slim-image.sh to remove redundant layers.
+#
+# Verified on L40 (sm_89):
+#   - engine load + inference smoke OK
+#   - unit QA 8/8
+#   - FunASR stack (VAD/CAM++/PUNC) OK
+#   - ForcedAligner engine load OK
+FROM w217/qwen3-asr:async-v023
+
+# --- Upgrade inference stack: vLLM 0.28.0 + torch 2.13.0 + transformers 5.5.3 ---
+# vLLM 0.24+ requires transformers>=5.5.3; vLLM 0.28 pins torch==2.13.0
+RUN uv pip install --python /opt/venv/bin/python \
+        --index-url https://pypi.org/simple \
+        "vllm[audio]==0.28.0" \
+        "transformers==5.5.3" \
+        "funasr==1.4.6"
+
+# flashinfer-cubin is not on PyPI since 0.6.14; must come from flashinfer.ai/whl/
+# The version must match flashinfer-python exactly (0.6.16.post3 for vLLM 0.28).
+RUN uv pip install --python /opt/venv/bin/python \
+        --index-url https://pypi.org/simple \
+        --extra-index-url https://flashinfer.ai/whl/ \
+        "flashinfer-cubin==0.6.16.post3"
+
+# Pre-compiled JIT cache for CUDA 13.0 (1.4 GB; speeds up startup)
+RUN uv pip install --python /opt/venv/bin/python \
+        --index-url https://flashinfer.ai/whl/cu130 \
+        "flashinfer-jit-cache==0.6.16.post3"
+
+# vLLM 0.28 + torch 2.13 runtime requirements:
+# - CUDA_HOME: CUDA 13 toolkit bundled with torch (nvcc + headers).
+#   torch 2.13 installs nvidia-cuda-nvcc into nvidia/cu13/ (same path as 2.11).
+# - LD_LIBRARY_PATH: nvidia/cu13/lib + cuda_nvrtc/lib (NVRTC builtins,
+#   needed by CAM++ speaker-diarization CUDA kernel JIT at runtime)
+# - VLLM_USE_FLASHINFER_SAMPLER=0: no prebuilt flashinfer sampling kernels
+#   for sm_89; PyTorch sampler is used instead
+ENV CUDA_HOME=/opt/venv/lib/python3.12/site-packages/nvidia/cu13 \
+    LD_LIBRARY_PATH=/opt/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/opt/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib \
+    VLLM_USE_FLASHINFER_SAMPLER=0 \
+    HF_HUB_OFFLINE=1
+
+# Updated application code (AsyncLLMEngine refactor + tuning knobs + QA suite)
+COPY app/ /app/app/
+
+# Qwen3-ASR (HuggingFace cache layout)
+COPY models-baked/huggingface/hub/ /root/.cache/huggingface/hub/
+# FunASR stack: VAD / CAM++ / Paraformer / PUNC (ModelScope cache layout)
+COPY models-baked/modelscope/hub/models/ /root/.cache/modelscope/hub/models/
+
+RUN echo "models baked at build time; runtime downloads disabled"
+
