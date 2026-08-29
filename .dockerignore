@@ -60,4 +60,8 @@ docs/
 # 其他
 .pytest_cache
 .coverage
-node_modules 
+node_modules
+# 本地烘焙模型目录 / 临时素材（Dockerfile.l40 在构建期自行下载模型，避免重复打入）
+models-baked/
+demo2/
+

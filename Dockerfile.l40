@@ -1,0 +1,133 @@
+# L40 (sm_89) optimized image: vLLM 0.23 + torch 2.11 + torch.compile cache
+# baked in, models downloaded at build time -> fully offline at runtime.
+#
+#   docker build -f Dockerfile.l40 -t qwenasr:l40 .
+#
+# Runtime perf (L40 single card, 20s clip): ~12.7 rps @ concurrency 16+,
+# startup ~2m50s (torch.compile cache reused).
+ARG PYTORCH_BASE_IMAGE=pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime
+FROM ${PYTORCH_BASE_IMAGE}
+
+ARG CUDA_NVCC_PACKAGE=cuda-nvcc-12-8
+ARG PYTORCH_CUDA_INDEX=https://download.pytorch.org/whl/cu128
+ARG TORCH_VERSION=2.10.0
+ARG TORCHAUDIO_VERSION=2.10.0
+ARG TORCHVISION_VERSION=0.25.0
+# NOTE: overridden below to the L40-tuned vLLM; kept for base-layer parity
+ARG VLLM_PACKAGE=vllm[audio]==0.19.0
+# L40 is sm_89; no PTX JIT needed, arch list is effectively a hint only.
+ARG TORCH_CUDA_ARCH_LIST=8.9
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HF_HOME=/root/.cache/huggingface \
+    HF_HUB_CACHE=/root/.cache/huggingface/hub \
+    HF_HUB_DISABLE_SYMLINKS_WARNING=1 \
+    HF_HUB_DISABLE_PROGRESS_BARS=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    PATH=/opt/venv/bin:$PATH \
+    VIRTUAL_ENV=/opt/venv \
+    UV_PROJECT_ENVIRONMENT=/opt/venv \
+    TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}
+
+# NVIDIA apt repository (for cuda-nvcc headers used by runtime JIT paths)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        gnupg \
+        wget \
+    && wget -qO - https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/3bf863cc.pub | apt-key add - \
+    && echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64 /" > /etc/apt/sources.list.d/cuda.list \
+    && apt-get update
+
+# Audio-processing + build toolchain (ffmpeg/sox for decoding, nvcc for JIT)
+RUN apt-get install -y --no-install-recommends \
+        ffmpeg \
+        sox \
+        libsox-dev \
+        libsndfile1 \
+        nginx \
+        build-essential \
+        ${CUDA_NVCC_PACKAGE}
+
+WORKDIR /app
+
+# Python dependencies (CPU deps are heavy; the GPU stack is reinstalled below)
+RUN pip install --no-cache-dir uv
+COPY pyproject.toml uv.lock* /app/
+RUN uv venv /opt/venv && \
+    uv sync --no-dev --no-install-project --frozen && \
+    uv pip install --reinstall \
+        --index-url "${PYTORCH_CUDA_INDEX}" \
+        --extra-index-url https://pypi.org/simple \
+        "torch==${TORCH_VERSION}" \
+        "torchaudio==${TORCHAUDIO_VERSION}" \
+        "torchvision==${TORCHVISION_VERSION}" && \
+    uv pip install --reinstall "${VLLM_PACKAGE}"
+
+# --- L40 upgrade: vLLM 0.23.0 (brings torch 2.11.0+cu130 from PyPI) ---
+RUN uv pip install --python /opt/venv/bin/python \
+        --index-url https://pypi.org/simple \
+        "vllm[audio]==0.23.0"
+
+# Runtime requirements of vLLM 0.23 + torch 2.11 on L40 (sm_89):
+# - CUDA_HOME: CUDA 13 toolkit bundled with torch (nvcc + headers)
+# - LD_LIBRARY_PATH: nvidia/cu13/lib + cuda_nvrtc/lib (NVRTC builtins,
+#   needed by CAM++ speaker-diarization CUDA kernel JIT at runtime)
+# - VLLM_USE_FLASHINFER_SAMPLER=0: no prebuilt flashinfer sampling kernels
+#   for sm_89; PyTorch sampler is used instead
+ENV CUDA_HOME=/opt/venv/lib/python3.12/site-packages/nvidia/cu13 \
+    LD_LIBRARY_PATH=/opt/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/opt/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib \
+    VLLM_USE_FLASHINFER_SAMPLER=0
+
+# Dependency sanity check (fails fast on inconsistent stack)
+RUN /opt/venv/bin/python - <<'PY'
+import torch, torchaudio, transformers, vllm
+print("torch", torch.__version__)
+print("torchaudio", torchaudio.__version__)
+print("transformers", transformers.__version__)
+print("vllm", vllm.__version__)
+PY
+
+# Free build caches (uv/uv-cache can hold multi-GB of wheels) to keep the
+# GitHub-hosted runner disk within limits.
+RUN rm -rf /root/.cache/uv /root/.cache/pip /tmp/* 2>/dev/null || true
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Application code (includes app/qa in-image QA suite)
+COPY . .
+
+# --- Bake models into the image (fully offline at runtime) ---
+# Qwen3-ASR + ForcedAligner from HuggingFace; FunASR stack from ModelScope.
+RUN /opt/venv/bin/python - <<'PY'
+from huggingface_hub import snapshot_download
+snapshot_download("Qwen/Qwen3-ASR-1.7B")
+snapshot_download("Qwen/Qwen3-ForcedAligner-0.6B")
+print("huggingface models downloaded")
+PY
+RUN MODELSCOPE_CACHE=/root/.cache/modelscope/hub/models /opt/venv/bin/python - <<'PY'
+from modelscope.hub.snapshot_download import snapshot_download
+for m in [
+    "iic/speech_campplus_speaker-diarization_common",
+    "damo/speech_campplus_sv_zh-cn_16k-common",
+    "damo/speech_campplus-transformer_scl_zh-cn_16k-common",
+    "iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-online",
+    "iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch",
+    "iic/punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727",
+    "damo/speech_fsmn_vad_zh-cn-16k-common-pytorch",
+]:
+    snapshot_download(m)
+print("modelscope models downloaded")
+PY
+
+# Fully offline at runtime (models are baked in above)
+ENV HF_HUB_OFFLINE=1
+
+RUN mkdir -p /app/temp /app/data /app/logs \
+    && chmod +x start.py /app/scripts/docker/entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["/app/scripts/docker/entrypoint.sh"]
+CMD ["/opt/venv/bin/python", "start.py"]
