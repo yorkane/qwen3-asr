@@ -6,19 +6,19 @@ on:
     branches: [main]
     paths:
       - 'Dockerfile.l40.v028'
+      - 'Dockerfile.l40.v028.dockerignore'
       - 'benchmark/requirements-direct.txt'
+      - 'benchmark/warmup_compile.py'
       - 'app/**'
       - '.github/workflows/docker-l40-v028.yml'
 
 env:
-  REGISTRY: docker.io
-  OWNER: yorkane
-  IMAGE: qwen3-asr
+  REGISTRY: ghcr.io
+  IMAGE_NAME: qwen3-asr
 
 jobs:
   build-l40-v028:
     runs-on: ubuntu-latest
-    environment: Docker
     permissions:
       contents: read
       packages: write
@@ -45,12 +45,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push v0.28 image
         uses: docker/build-push-action@v5
@@ -60,6 +60,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE }}:latest
-            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE }}:0.28
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:0.28
 
