@@ -52,20 +52,18 @@ docker stop "$TMP_CONTAINER" >/dev/null
 
 # 2) 导出并重新导入（单层、真正减小）
 info "导出容器文件系统..."
+
+# Inherit the source image's ENV (so CUDA_HOME / LD_LIBRARY_PATH /
+# VLLM_USE_FLASHINFER_SAMPLER etc. survive the squash), then layer the
+# minimal entrypoint/cmd/working-dir overrides on top.
+ENV_CHANGES=()
+while IFS='=' read -r k v; do
+  [[ -z "$k" ]] && continue
+  ENV_CHANGES+=(--change "ENV ${k}=${v}")
+done < <(docker image inspect "$SRC" --format '{{range .Config.Env}}{{println .}}{{end}}')
+
 docker export "$TMP_CONTAINER" | docker import \
-  --change 'ENV PATH=/opt/venv/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' \
-  --change 'ENV PYTHONUNBUFFERED=1' \
-  --change 'ENV PYTHONDONTWRITEBYTECODE=1' \
-  --change 'ENV HF_HOME=/root/.cache/huggingface' \
-  --change 'ENV HF_HUB_CACHE=/root/.cache/huggingface/hub' \
-  --change 'ENV HF_HUB_OFFLINE=1' \
-  --change 'ENV HF_HUB_DISABLE_SYMLINKS_WARNING=1' \
-  --change 'ENV HF_HUB_DISABLE_PROGRESS_BARS=1' \
-  --change 'ENV VIRTUAL_ENV=/opt/venv' \
-  --change 'ENV UV_PROJECT_ENVIRONMENT=/opt/venv' \
-  --change 'ENV TORCH_CUDA_ARCH_LIST=12.0+PTX' \
-  --change 'ENV NVIDIA_VISIBLE_DEVICES=all' \
-  --change 'ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility' \
+  "${ENV_CHANGES[@]}" \
   --change 'WORKDIR /app' \
   --change 'EXPOSE 8000' \
   --change 'ENTRYPOINT ["/app/scripts/docker/entrypoint.sh"]' \
@@ -75,4 +73,3 @@ docker export "$TMP_CONTAINER" | docker import \
 docker rm "$TMP_CONTAINER" >/dev/null
 
 info "完成: $DST ($(size_of $DST))  <-  $SRC ($(size_of $SRC))"
-

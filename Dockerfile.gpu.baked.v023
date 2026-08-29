@@ -1,0 +1,31 @@
+# Bake variant: fully-offline image with models baked in, upgraded to
+# vLLM 0.23.0 + torch 2.11 for higher throughput and faster startup.
+#
+# Build: docker build -f Dockerfile.gpu.baked -t w217/qwen3-asr:async-baked .
+# then squash with scripts/slim-image.sh to remove redundant layers.
+FROM quantatrisk/qwen3-asr:gpu-latest
+
+# --- Upgrade inference stack: vLLM 0.23.0 (pulls torch 2.11.0+cu130) ---
+RUN uv pip install --python /opt/venv/bin/python \
+        --index-url https://pypi.org/simple \
+        "vllm[audio]==0.23.0"
+
+# vLLM 0.23 + torch 2.11 runtime requirements:
+# - CUDA_HOME points at the CUDA 13 toolkit bundled with torch (nvcc + headers)
+# - NVRTC builtins live in nvidia/cu13/lib; keep it on LD_LIBRARY_PATH so the
+#   CAM++ speaker-diarization CUDA kernels can JIT-compile at runtime
+# - flashinfer sm_89 sampling JIT is disabled; PyTorch sampler is used instead
+ENV CUDA_HOME=/opt/venv/lib/python3.12/site-packages/nvidia/cu13 \
+    LD_LIBRARY_PATH=/opt/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/opt/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib \
+    VLLM_USE_FLASHINFER_SAMPLER=0 \
+    HF_HUB_OFFLINE=1
+
+# Updated application code (AsyncLLMEngine refactor + tuning knobs + QA suite)
+COPY app/ /app/app/
+
+# Qwen3-ASR (HuggingFace cache layout)
+COPY models-baked/huggingface/hub/ /root/.cache/huggingface/hub/
+# FunASR stack: VAD / CAM++ / Paraformer / PUNC (ModelScope cache layout)
+COPY models-baked/modelscope/hub/models/ /root/.cache/modelscope/hub/models/
+
+RUN echo "models baked at build time; runtime downloads disabled"

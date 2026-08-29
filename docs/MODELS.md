@@ -33,11 +33,17 @@
 
 | 组件 | 版本 | 来源 |
 |---|---|---|
-| vLLM | 0.19.0（`vllm[audio]`） | PyPI |
-| PyTorch | 2.10.0+cu128 | `https://download.pytorch.org/whl/cu128` |
-| torchaudio | 2.10.0 | 同上 |
+| vLLM | **0.23.0**（`vllm[audio]`，推荐）/ 0.19.0（回退） | PyPI |
+| PyTorch | **2.11.0+cu130**（0.23 镜像）/ 2.10.0+cu128（0.19 镜像） | PyPI / `https://download.pytorch.org/whl/cu128` |
+| torchaudio | 2.11.0 / 2.10.0 | 同上 |
+| torchvision | 0.26.0 / 0.25.0 | 同上 |
 | transformers | 4.57.6 | PyPI |
 | FunASR | 1.3.1 | PyPI |
 | librosa | 0.11.0 | PyPI |
-| CUDA | 12.8（cudnn9） | `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime` 基础镜像 |
+| flashinfer-python | 0.6.12（0.23 镜像） | PyPI（采样被禁用，用 PyTorch 采样） |
+| CUDA | 13.0（torch 自带，0.23 镜像）/ 12.8（0.19 镜像） | torch pip 包 / 基础镜像 |
 | Python | 3.12 | 基础镜像 |
+
+> 0.23 镜像的 `CUDA_HOME` 指向 torch 自带的 CUDA 13 工具链（nvcc + 头文件），
+> `LD_LIBRARY_PATH` 包含 `nvidia/cu13/lib`（NVRTC 运行时）。这些由镜像内置，
+> 部署时无需额外配置。

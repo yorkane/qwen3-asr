@@ -8,8 +8,9 @@
 
 | 镜像 | 体积 | 说明 |
 |---|---|---|
-| `w217/qwen3-asr:async-baked-slim` | ~19.9GB | **推荐**。AsyncLLMEngine + 模型内置 + 压扁瘦身 |
-| `w217/qwen3-asr:async-baked` | ~31.7GB | 未瘦身版本（同一内容，未压扁） |
+| `w217/qwen3-asr:async-baked-slim-023-final` | ~20GB | **推荐**。vLLM 0.23 + torch 2.11 + AsyncLLMEngine + 模型内置 + 压扁瘦身（吞吐 +8%，启动更快） |
+| `w217/qwen3-asr:async-baked-slim` | ~19.9GB | vLLM 0.19 稳定版（回退选项） |
+| `w217/qwen3-asr:async-baked` | ~31.7GB | 未瘦身版本 |
 
 镜像内关键事实：
 
@@ -58,6 +59,9 @@ curl -s -H 'Authorization: Bearer devideo2026asrkey' http://127.0.0.1:17003/v1/m
 | `QWEN_VLLM_SHARED_CONCURRENCY` | 64 | 应用层并发上限 |
 | `QWEN_VAD_POOL` | 4 | VAD 实例池大小 |
 | `ASR_BATCH_SIZE` | 32 | 单请求分段批大小 |
+| `VLLM_USE_FLASHINFER_SAMPLER` | 0 | 0.23 镜像内置：禁用 flashinfer 采样（sm_89 用 PyTorch 采样） |
+| `CUDA_HOME` | 内置 | 0.23 镜像内置：指向 torch 自带 CUDA 13 工具链 |
+| `LD_LIBRARY_PATH` | 内置 | 0.23 镜像内置：NVRTC 运行时库路径 |
 
 ## 多 GPU 部署
 
@@ -98,15 +102,20 @@ docker exec qwen3-asr /opt/venv/bin/python -m app.qa.run_qa \
 
 退出码 0 表示全部通过，可直接接入发布流程。
 
-## 验收基线（L40 单卡实测）
+## 验收基线（L40 单卡实测，20s 音频）
+
+vLLM 0.23 + torch 2.11（推荐镜像）：
 
 | 并发 | 吞吐 (rps) | 加速比 |
 |---|---|---|
-| 1 | ~0.8 | 1.0× |
-| 32（峰值） | ~2.2 | ~2.9× |
-| 64 | ~2.1 | ~2.7× |
+| 1 | ~2.0 | 1.0× |
+| 32 | ~12.4 | ~6.3× |
+| 64（峰值） | **~12.4** | **~6.3×** |
+| 128 | ~11.6 | ~5.9× |
 
-冒烟测试：5 项全过（转写 / 分段 / 词级时间戳 / 并发）。
+vLLM 0.19（回退镜像）峰值 ~11.5 rps @ 并发64。
+
+启动时间（含模型加载）：首次 ~3.5 分钟，二次启动 ~2.3 分钟（torch.compile 缓存复用）。
 
 ## 故障排查
 
