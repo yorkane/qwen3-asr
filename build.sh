@@ -18,6 +18,7 @@ PUSH="false"
 EXPORT_TAR="false"
 EXPORT_DIR="."
 NO_CACHE="false"
+SLIM="false"
 LANG_MODE="zh"
 
 # =============================================================================
@@ -43,6 +44,7 @@ _msg() {
       q_output)  echo "输出目录" ;;
       q_reg)     echo "仓库命名空间" ;;
       q_cache)   echo "禁用构建缓存" ;;
+      q_slim)    echo "构建后压缩镜像体积" ;;
       q_confirm) echo "确认并开始构建" ;;
       summary)   echo "构建摘要" ;;
       cancel)    echo "已取消" ;;
@@ -75,6 +77,7 @@ _msg() {
       q_output)  echo "Output directory" ;;
       q_reg)     echo "Registry namespace" ;;
       q_cache)   echo "Disable build cache" ;;
+      q_slim)    echo "Slim image after build" ;;
       q_confirm) echo "Confirm and start build" ;;
       summary)   echo "Build summary" ;;
       cancel)    echo "Cancelled" ;;
@@ -186,6 +189,13 @@ build_cpu() {
 build_gpu() {
   [[ "$PLATFORM" == *"arm64"* ]] && die "$(_msg err_gpu)"
   build_image "gpu" "Dockerfile.gpu" "${REGISTRY}/${IMAGE_NAME}:gpu-${VERSION}" "linux/amd64"
+
+  if [[ "$SLIM" == "true" && "$PUSH" != "true" && "$EXPORT_TAR" != "true" ]]; then
+    info "$(_msg q_slim)..."
+    "$(dirname "${BASH_SOURCE[0]}")/scripts/slim-image.sh" \
+      "${REGISTRY}/${IMAGE_NAME}:gpu-${VERSION}" \
+      "${REGISTRY}/${IMAGE_NAME}:gpu-${VERSION}-slim"
+  fi
 }
 
 # =============================================================================
@@ -354,6 +364,7 @@ Options:
   -o, --output DIR    $(_msg q_output) (default: .)
   -r, --registry REG  $(_msg q_reg) (default: quantatrisk)
   -n, --no-cache      $(_msg q_cache)
+  -s, --slim          $(_msg q_slim)
   -l, --lang LANG     $(_msg q_lang): zh, en (default: zh)
   -h, --help          Show this help
 
@@ -376,6 +387,7 @@ parse_args() {
       -o|--output)   EXPORT_DIR="$2"; shift 2 ;;
       -r|--registry) REGISTRY="$2"; shift 2 ;;
       -n|--no-cache) NO_CACHE="true"; shift ;;
+      -s|--slim)     SLIM="true"; shift ;;
       -l|--lang)     LANG_MODE="$2"; shift 2 ;;
       -h|--help)     show_help; exit 0 ;;
       *) die "$(_msg err_opt): $1" ;;
