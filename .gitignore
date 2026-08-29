@@ -147,6 +147,8 @@ test_audio.*
 *.wav
 !tests/assets/*.wav
 *.mp3
+# QA test assets bundled into the image
+!app/qa/assets/*.mp3
 *.pcm
 *.aac
 *.amr
