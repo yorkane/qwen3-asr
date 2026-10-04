@@ -181,3 +181,10 @@ modelscope/
 
 
 video/
+
+# 烘焙进镜像的模型权重（本机 7.9G，不入库）
+models-baked/
+# 压测原始产物
+benchmark/results/
+benchmark/data/
+__pycache__/

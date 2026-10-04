@@ -1,0 +1,1052 @@
+{
+ "zhouxc0925|spectral|eres only": {
+  "acc": 0.817,
+  "macro_ari": 0.4806,
+  "loo_nn": 0.8366,
+  "margin_all": [
+   0.039,
+   0.142,
+   0.449
+  ],
+  "margin_short": [
+   0.039,
+   0.132,
+   0.264
+  ],
+  "margin_long": [
+   0.044,
+   0.151,
+   0.553
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.7878787878787878,
+  "loo_long": 0.8735632183908046
+ },
+ "zhouxc0925|spectral|camp only": {
+  "acc": 0.817,
+  "macro_ari": 0.4228,
+  "loo_nn": 0.8758,
+  "margin_all": [
+   0.087,
+   0.174,
+   0.318
+  ],
+  "margin_short": [
+   0.089,
+   0.15,
+   0.278
+  ],
+  "margin_long": [
+   0.086,
+   0.198,
+   0.331
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9080459770114943
+ },
+ "zhouxc0925|spectral|concat": {
+  "acc": 0.817,
+  "macro_ari": 0.4639,
+  "loo_nn": 0.9085,
+  "margin_all": [
+   0.09,
+   0.224,
+   0.422
+  ],
+  "margin_short": [
+   0.072,
+   0.199,
+   0.321
+  ],
+  "margin_long": [
+   0.095,
+   0.246,
+   0.527
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9655172413793104
+ },
+ "zhouxc0925|spectral|score z w=.5": {
+  "acc": 0.817,
+  "macro_ari": 0.4639,
+  "loo_nn": 0.915,
+  "margin_all": [
+   0.088,
+   0.223,
+   0.411
+  ],
+  "margin_short": [
+   0.068,
+   0.205,
+   0.321
+  ],
+  "margin_long": [
+   0.095,
+   0.251,
+   0.509
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9770114942528736
+ },
+ "zhouxc0925|spectral|score z w=.6": {
+  "acc": 0.8235,
+  "macro_ari": 0.4737,
+  "loo_nn": 0.902,
+  "margin_all": [
+   0.085,
+   0.203,
+   0.433
+  ],
+  "margin_short": [
+   0.064,
+   0.181,
+   0.314
+  ],
+  "margin_long": [
+   0.092,
+   0.22,
+   0.547
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9540229885057471
+ },
+ "zhouxc0925|spectral|score z sceneN": {
+  "acc": 0.8105,
+  "macro_ari": 0.4467,
+  "loo_nn": 0.915,
+  "margin_all": [
+   0.042,
+   0.1,
+   0.167
+  ],
+  "margin_short": [
+   0.036,
+   0.095,
+   0.148
+  ],
+  "margin_long": [
+   0.047,
+   0.119,
+   0.179
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9770114942528736
+ },
+ "zhouxc0925|spectral|score raw w=.5": {
+  "acc": 0.817,
+  "macro_ari": 0.4639,
+  "loo_nn": 0.9085,
+  "margin_all": [
+   0.09,
+   0.224,
+   0.422
+  ],
+  "margin_short": [
+   0.072,
+   0.199,
+   0.321
+  ],
+  "margin_long": [
+   0.095,
+   0.246,
+   0.527
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9655172413793104
+ },
+ "zhouxc0925|average|eres only": {
+  "acc": 0.7843,
+  "macro_ari": 0.5719,
+  "loo_nn": 0.8366,
+  "margin_all": [
+   0.098,
+   0.269,
+   0.544
+  ],
+  "margin_short": [
+   0.096,
+   0.224,
+   0.414
+  ],
+  "margin_long": [
+   0.111,
+   0.335,
+   0.581
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.7878787878787878,
+  "loo_long": 0.8735632183908046
+ },
+ "zhouxc0925|average|camp only": {
+  "acc": 0.732,
+  "macro_ari": 0.2644,
+  "loo_nn": 0.8758,
+  "margin_all": [
+   0.118,
+   0.253,
+   0.509
+  ],
+  "margin_short": [
+   0.112,
+   0.218,
+   0.428
+  ],
+  "margin_long": [
+   0.135,
+   0.266,
+   0.576
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9080459770114943
+ },
+ "zhouxc0925|average|concat": {
+  "acc": 0.7712,
+  "macro_ari": 0.5239,
+  "loo_nn": 0.9085,
+  "margin_all": [
+   0.118,
+   0.267,
+   0.521
+  ],
+  "margin_short": [
+   0.123,
+   0.245,
+   0.445
+  ],
+  "margin_long": [
+   0.119,
+   0.307,
+   0.553
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9655172413793104
+ },
+ "zhouxc0925|average|score z w=.5": {
+  "acc": 0.7712,
+  "macro_ari": 0.536,
+  "loo_nn": 0.915,
+  "margin_all": [
+   0.1,
+   0.26,
+   0.495
+  ],
+  "margin_short": [
+   0.11,
+   0.227,
+   0.437
+  ],
+  "margin_long": [
+   0.088,
+   0.287,
+   0.52
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9770114942528736
+ },
+ "zhouxc0925|average|score z w=.6": {
+  "acc": 0.7712,
+  "macro_ari": 0.5336,
+  "loo_nn": 0.902,
+  "margin_all": [
+   0.093,
+   0.261,
+   0.513
+  ],
+  "margin_short": [
+   0.111,
+   0.227,
+   0.439
+  ],
+  "margin_long": [
+   0.091,
+   0.285,
+   0.534
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9540229885057471
+ },
+ "zhouxc0925|average|score z sceneN": {
+  "acc": 0.7908,
+  "macro_ari": 0.5729,
+  "loo_nn": 0.915,
+  "margin_all": [
+   0.05,
+   0.126,
+   0.203
+  ],
+  "margin_short": [
+   0.055,
+   0.106,
+   0.174
+  ],
+  "margin_long": [
+   0.046,
+   0.133,
+   0.224
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9770114942528736
+ },
+ "zhouxc0925|average|score raw w=.5": {
+  "acc": 0.7712,
+  "macro_ari": 0.5239,
+  "loo_nn": 0.9085,
+  "margin_all": [
+   0.118,
+   0.267,
+   0.521
+  ],
+  "margin_short": [
+   0.123,
+   0.245,
+   0.445
+  ],
+  "margin_long": [
+   0.119,
+   0.307,
+   0.553
+  ],
+  "n_rows": 153,
+  "n_scenes": 8,
+  "n_short": 66,
+  "loo_short": 0.8333333333333334,
+  "loo_long": 0.9655172413793104
+ },
+ "jiandang|spectral|eres only": {
+  "acc": 0.9231,
+  "macro_ari": 0.7777,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.04,
+   0.19,
+   0.949
+  ],
+  "margin_short": [
+   0.083,
+   0.149,
+   0.357
+  ],
+  "margin_long": [
+   0.034,
+   0.196,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|spectral|camp only": {
+  "acc": 0.9231,
+  "macro_ari": 0.8603,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.067,
+   0.177,
+   0.936
+  ],
+  "margin_short": [
+   0.031,
+   0.162,
+   0.215
+  ],
+  "margin_long": [
+   0.107,
+   0.189,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|spectral|concat": {
+  "acc": 0.9231,
+  "macro_ari": 0.875,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.063,
+   0.187,
+   0.943
+  ],
+  "margin_short": [
+   0.082,
+   0.177,
+   0.305
+  ],
+  "margin_long": [
+   0.059,
+   0.192,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|spectral|score z w=.5": {
+  "acc": 0.9231,
+  "macro_ari": 0.875,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.083,
+   0.227,
+   0.951
+  ],
+  "margin_short": [
+   0.101,
+   0.215,
+   0.382
+  ],
+  "margin_long": [
+   0.079,
+   0.235,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|spectral|score z w=.6": {
+  "acc": 0.9231,
+  "macro_ari": 0.875,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.074,
+   0.225,
+   0.953
+  ],
+  "margin_short": [
+   0.096,
+   0.213,
+   0.381
+  ],
+  "margin_long": [
+   0.07,
+   0.232,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|spectral|score z sceneN": {
+  "acc": 0.9231,
+  "macro_ari": 0.875,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.028,
+   0.124,
+   0.921
+  ],
+  "margin_short": [
+   0.031,
+   0.116,
+   0.188
+  ],
+  "margin_long": [
+   0.032,
+   0.127,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|spectral|score raw w=.5": {
+  "acc": 0.9231,
+  "macro_ari": 0.875,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.063,
+   0.187,
+   0.943
+  ],
+  "margin_short": [
+   0.082,
+   0.177,
+   0.305
+  ],
+  "margin_long": [
+   0.059,
+   0.192,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|average|eres only": {
+  "acc": 0.9808,
+  "macro_ari": 0.9859,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.062,
+   0.2,
+   0.949
+  ],
+  "margin_short": [
+   0.091,
+   0.187,
+   0.357
+  ],
+  "margin_long": [
+   0.05,
+   0.2,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|average|camp only": {
+  "acc": 0.9615,
+  "macro_ari": 0.9677,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.145,
+   0.241,
+   0.939
+  ],
+  "margin_short": [
+   0.16,
+   0.198,
+   0.372
+  ],
+  "margin_long": [
+   0.142,
+   0.259,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|average|concat": {
+  "acc": 0.9808,
+  "macro_ari": 0.9859,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.09,
+   0.205,
+   0.943
+  ],
+  "margin_short": [
+   0.11,
+   0.202,
+   0.34
+  ],
+  "margin_long": [
+   0.078,
+   0.207,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|average|score z w=.5": {
+  "acc": 0.9423,
+  "macro_ari": 0.8822,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.043,
+   0.254,
+   0.951
+  ],
+  "margin_short": [
+   0.1,
+   0.254,
+   0.43
+  ],
+  "margin_long": [
+   0.038,
+   0.254,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|average|score z w=.6": {
+  "acc": 0.9423,
+  "macro_ari": 0.8822,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.045,
+   0.259,
+   0.953
+  ],
+  "margin_short": [
+   0.097,
+   0.264,
+   0.438
+  ],
+  "margin_long": [
+   0.04,
+   0.259,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|average|score z sceneN": {
+  "acc": 0.9808,
+  "macro_ari": 0.9859,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.051,
+   0.132,
+   0.921
+  ],
+  "margin_short": [
+   0.066,
+   0.116,
+   0.188
+  ],
+  "margin_long": [
+   0.049,
+   0.135,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "jiandang|average|score raw w=.5": {
+  "acc": 0.9808,
+  "macro_ari": 0.9859,
+  "loo_nn": 0.8654,
+  "margin_all": [
+   0.09,
+   0.205,
+   0.943
+  ],
+  "margin_short": [
+   0.11,
+   0.202,
+   0.34
+  ],
+  "margin_long": [
+   0.078,
+   0.207,
+   1.0
+  ],
+  "n_rows": 52,
+  "n_scenes": 5,
+  "n_short": 12,
+  "loo_short": 0.6666666666666666,
+  "loo_long": 0.925
+ },
+ "wusi|spectral|eres only": {
+  "acc": 0.7396,
+  "macro_ari": 0.3198,
+  "loo_nn": 0.7604,
+  "margin_all": [
+   0.041,
+   0.116,
+   0.382
+  ],
+  "margin_short": [
+   0.02,
+   0.12,
+   0.569
+  ],
+  "margin_long": [
+   0.041,
+   0.116,
+   0.297
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.5384615384615384,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|spectral|camp only": {
+  "acc": 0.7083,
+  "macro_ari": 0.297,
+  "loo_nn": 0.75,
+  "margin_all": [
+   0.021,
+   0.101,
+   0.288
+  ],
+  "margin_short": [
+   0.045,
+   0.12,
+   0.339
+  ],
+  "margin_long": [
+   0.02,
+   0.099,
+   0.23
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7710843373493976
+ },
+ "wusi|spectral|concat": {
+  "acc": 0.7604,
+  "macro_ari": 0.3951,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.049,
+   0.165,
+   0.385
+  ],
+  "margin_short": [
+   0.039,
+   0.072,
+   0.496
+  ],
+  "margin_long": [
+   0.051,
+   0.169,
+   0.373
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|spectral|score z w=.5": {
+  "acc": 0.7604,
+  "macro_ari": 0.3951,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.052,
+   0.172,
+   0.436
+  ],
+  "margin_short": [
+   0.03,
+   0.08,
+   0.57
+  ],
+  "margin_long": [
+   0.057,
+   0.183,
+   0.411
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|spectral|score z w=.6": {
+  "acc": 0.7396,
+  "macro_ari": 0.337,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.046,
+   0.127,
+   0.445
+  ],
+  "margin_short": [
+   0.029,
+   0.097,
+   0.569
+  ],
+  "margin_long": [
+   0.055,
+   0.13,
+   0.396
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|spectral|score z sceneN": {
+  "acc": 0.7604,
+  "macro_ari": 0.3951,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.026,
+   0.06,
+   0.121
+  ],
+  "margin_short": [
+   0.016,
+   0.043,
+   0.078
+  ],
+  "margin_long": [
+   0.029,
+   0.06,
+   0.125
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|spectral|score raw w=.5": {
+  "acc": 0.7604,
+  "macro_ari": 0.3951,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.049,
+   0.165,
+   0.385
+  ],
+  "margin_short": [
+   0.039,
+   0.072,
+   0.496
+  ],
+  "margin_long": [
+   0.051,
+   0.169,
+   0.373
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|average|eres only": {
+  "acc": 0.6562,
+  "macro_ari": 0.4332,
+  "loo_nn": 0.7604,
+  "margin_all": [
+   0.024,
+   0.168,
+   0.522
+  ],
+  "margin_short": [
+   0.052,
+   0.154,
+   0.628
+  ],
+  "margin_long": [
+   0.024,
+   0.17,
+   0.509
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.5384615384615384,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|average|camp only": {
+  "acc": 0.6354,
+  "macro_ari": 0.3601,
+  "loo_nn": 0.75,
+  "margin_all": [
+   0.039,
+   0.164,
+   0.543
+  ],
+  "margin_short": [
+   0.046,
+   0.284,
+   0.595
+  ],
+  "margin_long": [
+   0.039,
+   0.163,
+   0.438
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7710843373493976
+ },
+ "wusi|average|concat": {
+  "acc": 0.6979,
+  "macro_ari": 0.4763,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.056,
+   0.18,
+   0.537
+  ],
+  "margin_short": [
+   0.055,
+   0.276,
+   0.551
+  ],
+  "margin_long": [
+   0.057,
+   0.167,
+   0.491
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|average|score z w=.5": {
+  "acc": 0.6771,
+  "macro_ari": 0.4458,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.063,
+   0.192,
+   0.617
+  ],
+  "margin_short": [
+   0.091,
+   0.221,
+   0.621
+  ],
+  "margin_long": [
+   0.06,
+   0.168,
+   0.583
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|average|score z w=.6": {
+  "acc": 0.6875,
+  "macro_ari": 0.4615,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.069,
+   0.168,
+   0.668
+  ],
+  "margin_short": [
+   0.05,
+   0.119,
+   0.652
+  ],
+  "margin_long": [
+   0.077,
+   0.174,
+   0.663
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|average|score z sceneN": {
+  "acc": 0.6771,
+  "macro_ari": 0.4498,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.039,
+   0.084,
+   0.179
+  ],
+  "margin_short": [
+   0.057,
+   0.084,
+   0.151
+  ],
+  "margin_long": [
+   0.037,
+   0.083,
+   0.186
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ },
+ "wusi|average|score raw w=.5": {
+  "acc": 0.6979,
+  "macro_ari": 0.4763,
+  "loo_nn": 0.7708,
+  "margin_all": [
+   0.056,
+   0.18,
+   0.537
+  ],
+  "margin_short": [
+   0.055,
+   0.276,
+   0.551
+  ],
+  "margin_long": [
+   0.057,
+   0.167,
+   0.491
+  ],
+  "n_rows": 96,
+  "n_scenes": 6,
+  "n_short": 13,
+  "loo_short": 0.6153846153846154,
+  "loo_long": 0.7951807228915663
+ }
+}
