@@ -1,0 +1,33 @@
+# 229.t 生产部署：compose + ACR 镜像 + 免鉴权
+# 部署目录：229.t:/data/app/qwen3-asr/
+# 用法：cd /data/app/qwen3-asr && docker compose up -d
+services:
+  qwen3-asr:
+    image: wasu-wtvdev-registry-test-registry.cn-hangzhou.cr.aliyuncs.com/pub/qwen3-asr:spk-params
+    container_name: qwen3-asr-gpu3
+    restart: unless-stopped
+    ports:
+      - "17003:8000"
+    environment:
+      # 空值覆盖镜像内烘焙的 API_KEY -> 鉴权可选（不带 header 即可调用；
+      # 旧客户端继续带 Bearer/X-NLS-Token 也不报错）
+      API_KEY: ""
+      QWEN_VLLM_MAX_NUM_BATCHED_TOKENS: "16384"
+      QWEN_VLLM_RENDERER_WORKERS: "8"
+      QWEN_VLLM_MAX_IN_FLIGHT: "64"
+      ENABLED_MODELS: auto
+      QWEN_GPU_MEMORY_UTILIZATION: "0.7"
+      QWEN_FORCE_ALIGNER_GPU_MEMORY_UTILIZATION: "0.15"
+      QWEN_VAD_POOL: "4"
+      QWEN3_ASR_MODEL: qwen3-asr-1.7b
+      QWEN_VLLM_MAX_NUM_SEQS: "128"
+      QWEN_VLLM_SHARED_CONCURRENCY: "64"
+      ASR_BATCH_SIZE: "32"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["1"]
+              capabilities: [gpu]
+    shm_size: "8g"
