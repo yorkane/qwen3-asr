@@ -66,6 +66,20 @@ class Settings:
     # 音频分段配置
     MAX_SEGMENT_SEC: float = 60.0  # Max offline ASR segment duration in seconds.
 
+    # 说话人分离默认配置（环境变量可覆盖，请求级参数优先）
+    SPEAKER_NUM_SPEAKERS: Optional[int] = None  # 指定说话人数；None=CAM++ 自动估计
+    SPEAKER_MERGE_THR: float = 0.78  # 说话人合并余弦阈值（模型默认 0.78）
+
+    # ERes2NetV2 声纹 embedding（第二路声纹模型，供 /v1/audio/embeddings 与融合使用）
+    SPEAKER_ERES2NETV2_MODEL: str = (
+        "iic/speech_eres2netv2_sv_zh-cn_16k-common"  # ModelScope id 或本地 .ckpt/目录
+    )
+    SPEAKER_EMB_DEVICE: str = "auto"  # auto/cpu/cuda:0；留空则跟随 DEVICE
+    SPEAKER_EMB_BATCH_SIZE: int = 32
+    SPEAKER_CAMPPLUS_SV_MODEL: str = (
+        "damo/speech_campplus_sv_zh-cn_16k-common"  # CAM++ SV（融合第二路）
+    )
+
     # Runtime 并发配置（按 backend 独立控制）
     QWEN_RUST_CPU_WORKERS: int = 4
     FUNASR_WORKERS: int = 1
@@ -119,6 +133,26 @@ class Settings:
         self.MAX_SEGMENT_SEC = float(
             os.getenv("MAX_SEGMENT_SEC", str(self.MAX_SEGMENT_SEC))
         )
+
+        num_spk_env = os.getenv("SPEAKER_NUM_SPEAKERS", "").strip()
+        if num_spk_env:
+            self.SPEAKER_NUM_SPEAKERS = int(num_spk_env)
+        self.SPEAKER_MERGE_THR = float(
+            os.getenv("SPEAKER_MERGE_THR", str(self.SPEAKER_MERGE_THR))
+        )
+
+        eres_env = (os.getenv("SPEAKER_ERES2NETV2_MODEL") or "").strip()
+        if eres_env:
+            self.SPEAKER_ERES2NETV2_MODEL = eres_env
+        emb_dev_env = (os.getenv("SPEAKER_EMB_DEVICE") or "").strip()
+        if emb_dev_env:
+            self.SPEAKER_EMB_DEVICE = emb_dev_env
+        self.SPEAKER_EMB_BATCH_SIZE = int(
+            os.getenv("SPEAKER_EMB_BATCH_SIZE", str(self.SPEAKER_EMB_BATCH_SIZE))
+        )
+        camp_sv_env = (os.getenv("SPEAKER_CAMPPLUS_SV_MODEL") or "").strip()
+        if camp_sv_env:
+            self.SPEAKER_CAMPPLUS_SV_MODEL = camp_sv_env
 
         self.QWEN_RUST_CPU_WORKERS = int(
             os.getenv("QWEN_RUST_CPU_WORKERS", str(self.QWEN_RUST_CPU_WORKERS))
