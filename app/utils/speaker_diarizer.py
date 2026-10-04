@@ -263,12 +263,19 @@ class SpeakerDiarizer:
         self.min_segment_ms = int(min_segment_sec * 1000)
 
     def diarize(
-        self, audio_path: str
+        self,
+        audio_path: str,
+        num_speakers: Optional[int] = None,
+        merge_thr: Optional[float] = None,
     ) -> List[SpeakerSegment]:
         """执行说话人分离
 
         Args:
             audio_path: 音频文件路径
+            num_speakers: 指定说话人数量（oracle_num，强制聚类数）；None 回落到环境变量
+                SPEAKER_NUM_SPEAKERS，仍为空则自动估计
+            merge_thr: 说话人合并余弦阈值；None 回落到环境变量 SPEAKER_MERGE_THR
+                （默认 0.78）；调低更容易归并（更少说话人），调高保留更多说话人
 
         Returns:
             原始分段列表（未合并）
@@ -276,9 +283,42 @@ class SpeakerDiarizer:
         try:
             pipeline = get_global_diarization_pipeline()
 
-            logger.info(f"开始说话人分离: {audio_path}")
+            call_kwargs: dict[str, Any] = {}
+            # 未显式传参时回落到全局配置（环境变量 SPEAKER_NUM_SPEAKERS / SPEAKER_MERGE_THR）
+            if num_speakers is None:
+                num_speakers = settings.SPEAKER_NUM_SPEAKERS
+            if merge_thr is None:
+                merge_thr = settings.SPEAKER_MERGE_THR
+            # 注意：modelscope pipeline 会 self.config.update(params)，oracle_num 必须
+            # 每次显式传入（None 表示自动估计），否则会泄漏到后续请求的共享 config 中
+            if num_speakers is not None and num_speakers >= 1:
+                call_kwargs["oracle_num"] = int(num_speakers)
+            else:
+                call_kwargs["oracle_num"] = None
+            logger.info(
+                f"开始说话人分离: {audio_path}, "
+                f"num_speakers={num_speakers}, merge_thr={merge_thr}"
+            )
             with _diarization_inference_semaphore:
-                result = pipeline(audio_path)
+                # merge_thr 是模型上的共享状态，必须在推理信号量内改写并复原，
+                # 否则并发请求会互相污染
+                original_merge_thr = None
+                if merge_thr is not None and 0.0 < merge_thr <= 1.0:
+                    try:
+                        current = pipeline.model.model_config.get("merge_thr")
+                        if current is None or float(current) != float(merge_thr):
+                            original_merge_thr = current
+                            pipeline.model.model_config["merge_thr"] = float(merge_thr)
+                    except Exception as e:  # pragma: no cover
+                        logger.warning(f"设置 merge_thr 失败: {e}")
+                try:
+                    result = pipeline(audio_path, **call_kwargs)
+                finally:
+                    if original_merge_thr is not None:
+                        try:
+                            pipeline.model.model_config["merge_thr"] = original_merge_thr
+                        except Exception:
+                            pass
 
             # 解析结果: {'text': [[start, end, speaker_id], ...]}
             # pipeline 返回类型不确定，需要安全地获取 'text' 字段
@@ -587,6 +627,8 @@ class SpeakerDiarizer:
         self,
         audio_path: str,
         output_dir: Optional[str] = None,
+        num_speakers: Optional[int] = None,
+        merge_thr: Optional[float] = None,
     ) -> List[SpeakerSegment]:
         """完整的说话人分离流程
 
@@ -606,7 +648,9 @@ class SpeakerDiarizer:
         """
         try:
             # 1. 执行说话人分离
-            raw_segments = self.diarize(audio_path)
+            raw_segments = self.diarize(
+                audio_path, num_speakers=num_speakers, merge_thr=merge_thr
+            )
 
             if not raw_segments:
                 logger.warning("说话人分离未检测到任何片段")

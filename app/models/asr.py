@@ -37,6 +37,20 @@ class ASRQueryParams(BaseModel):
         description="是否启用说话人分离。启用后响应会包含 speaker_id",
     )
 
+    num_speakers: Optional[int] = Field(
+        default=None,
+        description="指定说话人数量（1-15）；不填则自动估计",
+        ge=1,
+        le=15,
+    )
+
+    speaker_merge_thr: Optional[float] = Field(
+        default=None,
+        description="说话人合并余弦阈值（0-1，默认 0.78）；调高保留更多说话人",
+        ge=0.0,
+        le=1.0,
+    )
+
     word_timestamps: Optional[bool] = Field(
         default=False,
         description="是否返回字词级时间戳（默认关闭；Qwen CUDA vLLM / CPU Rust 会在启用时自动调用 forced aligner）",

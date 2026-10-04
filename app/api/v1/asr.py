@@ -237,6 +237,8 @@ async def asr_transcribe(
                 hotwords=params.vocabulary_id or "",
                 enable_speaker_diarization=params.enable_speaker_diarization is not False,
                 word_timestamps=params.word_timestamps is True,
+                num_speakers=params.num_speakers,
+                merge_thr=params.speaker_merge_thr,
                 task_id=task_id,
             ),
         )

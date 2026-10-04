@@ -106,6 +106,8 @@ class BaseASREngine(ABC):
         sample_rate: int = 16000,
         enable_speaker_diarization: bool = True,
         word_timestamps: bool = False,
+        num_speakers: Optional[int] = None,
+        merge_thr: Optional[float] = None,
         timestamp_scale: float = 1.0,
         task_id: Optional[str] = None,
     ) -> ASRFullResult:
@@ -118,6 +120,8 @@ class BaseASREngine(ABC):
             enable_itn: 是否启用 ITN
             sample_rate: 采样率
             enable_speaker_diarization: 是否启用说话人分离
+            num_speakers: 指定说话人数量（None 自动估计）
+            merge_thr: 说话人合并阈值（None 使用模型默认 0.78）
             word_timestamps: 是否返回字词级时间戳（仅部分模型支持）
             timestamp_scale: Timestamp correction factor from audio normalization.
             task_id: 任务ID（用于日志追踪）
@@ -153,7 +157,9 @@ class BaseASREngine(ABC):
 
                 logger.info(f"{task_prefix}使用说话人分离模式")
                 diarizer = SpeakerDiarizer()
-                speaker_segments = diarizer.split_audio_by_speakers(audio_path)
+                speaker_segments = diarizer.split_audio_by_speakers(
+                    audio_path, num_speakers=num_speakers, merge_thr=merge_thr
+                )
 
                 if not speaker_segments:
                     logger.warning(f"{task_prefix}说话人分离未检测到片段，fallback 到 VAD 分割")

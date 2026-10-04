@@ -482,6 +482,18 @@ async def create_transcription(
         True,
         description="是否启用说话人分离（默认开启）。启用后响应 segments 会包含 speaker 字段"
     ),
+    num_speakers: Optional[int] = Form(
+        None,
+        ge=1,
+        le=15,
+        description="指定说话人数量（1-15）。默认由 CAM++ 自动估计；多人场景自动估计偏少时可显式指定",
+    ),
+    speaker_merge_thr: Optional[float] = Form(
+        None,
+        ge=0.0,
+        le=1.0,
+        description="说话人合并余弦阈值（0-1，默认 0.78）。调高保留更多说话人，调低更易归并",
+    ),
     word_timestamps: bool = Form(
         False,
         description="是否返回字词级时间戳（默认关闭；Qwen CUDA vLLM / CPU Rust 会在启用时自动调用 forced aligner）"
@@ -560,6 +572,8 @@ async def create_transcription(
                 sample_rate=16000,
                 enable_speaker_diarization=enable_speaker_diarization,
                 word_timestamps=word_timestamps,
+                num_speakers=num_speakers,
+                merge_thr=speaker_merge_thr,
             ),
         )
         audio_duration = prepared_audio.duration

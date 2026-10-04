@@ -29,6 +29,8 @@ class OfflineTranscriptionOptions:
     hotwords: str = ""
     enable_speaker_diarization: bool = True
     word_timestamps: bool = False
+    num_speakers: Optional[int] = None
+    merge_thr: Optional[float] = None
     task_id: Optional[str] = None
 
 
@@ -96,6 +98,8 @@ class OfflineTranscriptionService:
                 sample_rate=options.sample_rate or int(SampleRate.RATE_16000),
                 enable_speaker_diarization=options.enable_speaker_diarization,
                 word_timestamps=options.word_timestamps,
+                num_speakers=options.num_speakers,
+                merge_thr=options.merge_thr,
                 timestamp_scale=prepared_audio.timestamp_scale,
                 task_id=options.task_id,
             )
